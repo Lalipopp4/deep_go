@@ -12,79 +12,83 @@ type Option func(*GamePerson)
 
 func WithName(name string) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		for i, s := range name {
+			person.name[i] = byte(s)
+		}
 	}
 }
 
 func WithCoordinates(x, y, z int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.x = int32(x)
+		person.y = int32(y)
+		person.z = int32(z)
 	}
 }
 
 func WithGold(gold int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.gold = uint32(gold)
 	}
 }
 
 func WithMana(mana int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.otherMeta += uint32(mana << 5)
 	}
 }
 
 func WithHealth(health int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.otherMeta += uint32(health << 15)
 	}
 }
 
 func WithRespect(respect int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.rsel += uint16(respect << 12)
 	}
 }
 
 func WithStrength(strength int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.rsel += uint16(strength << 8)
 	}
 }
 
 func WithExperience(experience int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.rsel += uint16(experience << 4)
 	}
 }
 
 func WithLevel(level int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.rsel += uint16(level)
 	}
 }
 
 func WithHouse() func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.otherMeta = person.otherMeta | 0b10000
 	}
 }
 
 func WithGun() func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.otherMeta = person.otherMeta | 0b1000
 	}
 }
 
 func WithFamily() func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.otherMeta = person.otherMeta | 0b100
 	}
 }
 
 func WithType(personType int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.otherMeta += uint32(personType)
 	}
 }
 
@@ -92,90 +96,96 @@ const (
 	BuilderGamePersonType = iota
 	BlacksmithGamePersonType
 	WarriorGamePersonType
+
+	Len2  = 3
+	Len4  = 15
+	Len10 = 1023
 )
 
 type GamePerson struct {
-	// need to implement
+	x, y, z int32
+	name    [42]byte
+	// bin mask for respect, strength, experience, level
+	rsel uint16
+	// misc 		0000000
+	// mana     	0000000000
+	// health	 	0000000000
+	// house    	0
+	// gun   		0
+	// family   	0
+	// type     	00
+	otherMeta uint32
+	// gold
+	gold uint32
 }
 
 func NewGamePerson(options ...Option) GamePerson {
-	// need to implement
-	return GamePerson{}
+	gp := GamePerson{}
+	for _, op := range options {
+		op(&gp)
+	}
+
+	return gp
 }
 
 func (p *GamePerson) Name() string {
-	// need to implement
-	return ""
+	return unsafe.String(&p.name[0], 42)
 }
 
 func (p *GamePerson) X() int {
-	// need to implement
-	return 0
+	return int(p.x)
 }
 
 func (p *GamePerson) Y() int {
-	// need to implement
-	return 0
+	return int(p.y)
 }
 
 func (p *GamePerson) Z() int {
-	// need to implement
-	return 0
+	return int(p.z)
 }
 
 func (p *GamePerson) Gold() int {
-	// need to implement
-	return 0
+	return int(p.gold)
 }
 
 func (p *GamePerson) Mana() int {
-	// need to implement
-	return 0
+	return int(p.otherMeta&(Len10<<5)) >> 5
 }
 
 func (p *GamePerson) Health() int {
-	// need to implement
-	return 0
+	return int(p.otherMeta&(Len10<<5)) >> 5
 }
 
 func (p *GamePerson) Respect() int {
-	// need to implement
-	return 0
+	return int(p.rsel&(Len4<<12)) >> 12
 }
 
 func (p *GamePerson) Strength() int {
-	// need to implement
-	return 0
+	return int(p.rsel&(Len4<<8)) >> 8
 }
 
 func (p *GamePerson) Experience() int {
-	// need to implement
-	return 0
+	return int(p.rsel&(Len4<<4)) >> 4
 }
 
 func (p *GamePerson) Level() int {
-	// need to implement
-	return 0
+	return int(p.rsel & Len4)
 }
 
 func (p *GamePerson) HasHouse() bool {
-	// need to implement
-	return false
+	return p.otherMeta&0b10000 != 0
 }
 
 func (p *GamePerson) HasGun() bool {
-	// need to implement
-	return false
+	return p.otherMeta&0b1000 != 0
 }
 
 func (p *GamePerson) HasFamilty() bool {
-	// need to implement
-	return false
+	return p.otherMeta&0b100 != 0
 }
 
 func (p *GamePerson) Type() int {
-	// need to implement
-	return 0
+	return int(p.otherMeta & Len2)
 }
 
 func TestGamePerson(t *testing.T) {
