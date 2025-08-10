@@ -11,7 +11,16 @@ import (
 // go test -v homework_test.go
 
 func Defragment(memory []byte, pointers []unsafe.Pointer) {
-	// need to implement
+	var mi, pi int
+	for pi < len(pointers) {
+		if memory[mi] == 0 {
+			memory[mi] = *(*byte)(pointers[pi])
+			*(*byte)(pointers[pi]) = 0
+			pointers[pi] = unsafe.Pointer(&memory[mi])
+		}
+		pi++
+		mi++
+	}
 }
 
 func TestDefragmentation(t *testing.T) {
@@ -24,6 +33,40 @@ func TestDefragmentation(t *testing.T) {
 
 	var fragmentedPointers = []unsafe.Pointer{
 		unsafe.Pointer(&fragmentedMemory[0]),
+		unsafe.Pointer(&fragmentedMemory[5]),
+		unsafe.Pointer(&fragmentedMemory[10]),
+		unsafe.Pointer(&fragmentedMemory[15]),
+	}
+
+	var defragmentedPointers = []unsafe.Pointer{
+		unsafe.Pointer(&fragmentedMemory[0]),
+		unsafe.Pointer(&fragmentedMemory[1]),
+		unsafe.Pointer(&fragmentedMemory[2]),
+		unsafe.Pointer(&fragmentedMemory[3]),
+	}
+
+	var defragmentedMemory = []byte{
+		0xFF, 0xFF, 0xFF, 0xFF,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+	}
+
+	Defragment(fragmentedMemory, fragmentedPointers)
+	assert.True(t, reflect.DeepEqual(defragmentedMemory, fragmentedMemory))
+	assert.True(t, reflect.DeepEqual(defragmentedPointers, fragmentedPointers))
+}
+
+func TestDefragmentation2(t *testing.T) {
+	var fragmentedMemory = []byte{
+		0x00, 0xFF, 0x00, 0x00,
+		0x00, 0xFF, 0x00, 0x00,
+		0x00, 0x00, 0xFF, 0x00,
+		0x00, 0x00, 0x00, 0xFF,
+	}
+
+	var fragmentedPointers = []unsafe.Pointer{
+		unsafe.Pointer(&fragmentedMemory[1]),
 		unsafe.Pointer(&fragmentedMemory[5]),
 		unsafe.Pointer(&fragmentedMemory[10]),
 		unsafe.Pointer(&fragmentedMemory[15]),
