@@ -11,8 +11,23 @@ import (
 // go test -v homework_test.go
 
 func Trace(stacks [][]uintptr) []uintptr {
-	// need to implement
-	return nil
+	visited := make(map[uintptr]bool)
+	pointers := make([]uintptr, 0, len(stacks)*3)
+	for _, stack := range stacks {
+		for _, node := range stack {
+			if node == 0 {
+				continue
+			}
+
+			for node != 0 && !visited[node] {
+				visited[node] = true
+				pointers = append(pointers, node)
+				node = *(*uintptr)(unsafe.Pointer(node))
+			}
+		}
+	}
+
+	return pointers
 }
 
 func TestTrace(t *testing.T) {
@@ -49,9 +64,9 @@ func TestTrace(t *testing.T) {
 	pointers := Trace(stacks)
 	expectedPointers := []uintptr{
 		uintptr(unsafe.Pointer(&heapPointer1)),
+		uintptr(unsafe.Pointer(&heapObjects[1])),
 		uintptr(unsafe.Pointer(&heapObjects[0])),
 		uintptr(unsafe.Pointer(&heapPointer2)),
-		uintptr(unsafe.Pointer(&heapObjects[1])),
 		uintptr(unsafe.Pointer(&heapObjects[2])),
 		uintptr(unsafe.Pointer(&heapPointer4)),
 		uintptr(unsafe.Pointer(&heapPointer3)),
